@@ -37,14 +37,14 @@ conjur_authn() {
 	if [[ -n "$INPUT_AUTHN_ID" ]]; then
 
 		echo "::debug Authenticate via Authn-JWT"
-		JWT_TOKEN=$(curl -H "Authorization:bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value )
+		JWT_TOKEN=$(curl -k -H "Authorization:bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value )
         
 		if [[ -n "$INPUT_CERTIFICATE" ]]; then
             echo "::debug Authenticating with certificate"
-			token=$(curl --cacert "conjur_$INPUT_ACCOUNT.pem" --request POST "$INPUT_URL/authn-jwt/$INPUT_AUTHN_ID/$INPUT_ACCOUNT/authenticate" --header "Content-Type: application/x-www-form-urlencoded" --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT_TOKEN")
+			token=$(curl -k --cacert "conjur_$INPUT_ACCOUNT.pem" --request POST "$INPUT_URL/authn-jwt/$INPUT_AUTHN_ID/$INPUT_ACCOUNT/authenticate" --header "Content-Type: application/x-www-form-urlencoded" --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT_TOKEN")
 		else
             echo "::debug Authenticating without certificate"
-			token=$(curl --request POST "$INPUT_URL/authn-jwt/$INPUT_AUTHN_ID/$INPUT_ACCOUNT/authenticate" --header 'Content-Type: application/x-www-form-urlencoded' --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT_TOKEN")
+			token=$(curl -k --request POST "$INPUT_URL/authn-jwt/$INPUT_AUTHN_ID/$INPUT_ACCOUNT/authenticate" --header 'Content-Type: application/x-www-form-urlencoded' --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT_TOKEN")
 		fi
 
 	else
@@ -91,10 +91,10 @@ set_secrets() {
         
         if [[ -n "$INPUT_CERTIFICATE" ]]; then
             echo "::debug Retrieving secret with certificate"
-            secretVal=$(curl --cacert "conjur_$INPUT_ACCOUNT.pem" -H "Authorization: Token token=\"$token\"" "$INPUT_URL/secrets/$INPUT_ACCOUNT/variable/$secretId")
+            secretVal=$(curl -k --cacert "conjur_$INPUT_ACCOUNT.pem" -H "Authorization: Token token=\"$token\"" "$INPUT_URL/secrets/$INPUT_ACCOUNT/variable/$secretId")
         else
             echo "::debug Retrieving secret without certificate"
-            secretVal=$(curl -H "Authorization: Token token=\"$token\"" "$INPUT_URL/secrets/$INPUT_ACCOUNT/variable/$secretId")
+            secretVal=$(curl -k -H "Authorization: Token token=\"$token\"" "$INPUT_URL/secrets/$INPUT_ACCOUNT/variable/$secretId")
         fi
 
         if [[ "${secretVal}" == "Malformed authorization token" ]]; then
